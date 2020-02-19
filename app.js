@@ -3,7 +3,6 @@
 // load modules
 const express = require('express');
 const morgan = require('morgan');
-//define a variable(sequelize) that holds a Sequelize instance you can interact with.
 const { sequelize } = require('./models'); //index does not need to be included it is the default run file in the folder
 // TEST CONNECTION TO THE DB w/ IIFE and Authenticate() method
 (async () => { //keyword async defines an asynchronous function
