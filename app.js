@@ -4,7 +4,7 @@
 const express = require('express');
 const morgan = require('morgan');
 const { sequelize } = require('./models'); //index does not need to be included it is the default run file in the folder
-const routes = require('./routes')
+const routes = require('./routes');
 
 
 
