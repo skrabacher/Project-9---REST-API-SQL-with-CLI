@@ -7,7 +7,6 @@ const { sequelize } = require('./models'); //index does not need to be included 
 const routes = require('./routes');
 
 
-
 // TESTS CONNECTION TO THE DB w/ IIFE and Authenticate() method
 (async () => { //keyword async defines an asynchronous function
   try { //use the await keyword to wait for a Promise (await must be used inside an async function)

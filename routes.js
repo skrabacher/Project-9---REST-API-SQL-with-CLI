@@ -6,6 +6,8 @@ const { check, validationResult } = require('express-validator'); //originally: 
     // const checkModule = require('express-validator/check');
     // const check = checkModule.check;
     // const validationResult = checkModule.validationResult;
+//requirement for password hashing
+const bcryptjs = require('bcryptjs');
 
 //import Models
 const User = require('./models').User;
@@ -56,7 +58,7 @@ const descriptionVC = check('description')
 
 
 // POST /api/users 201 - Creates a user, sets the Location header to "/", and returns no content
-router.post('/users', firstNameVC, lastNameVC, emailVC, passwordVC, asyncHandler(async (req, res) => {
+router.post('/users', asyncHandler(async (req, res) => { // firstNameVC, lastNameVC, emailVC, passwordVC,
     // Attempt to get the validation result from the Request object.
     const errors = validationResult(req); //validationResult extracts the validation errors from a request and makes them available in a Result object.
     // If there are validation errors...
