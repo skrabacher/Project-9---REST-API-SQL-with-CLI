@@ -8,6 +8,8 @@ const { check, validationResult } = require('express-validator'); //originally: 
     // const validationResult = checkModule.validationResult;
 //requirement for password hashing
 const bcryptjs = require('bcryptjs');
+//requirement for user authentication
+const auth = require('basic-auth');
 
 //import Models
 const User = require('./models').User;
@@ -24,14 +26,56 @@ function asyncHandler(cb){
     }
   }
 }
+//Modeled using: https://teamtreehouse.com/library/rest-api-authentication-with-express
+const authenticateUser = async (req, res, next) => {
+    let authErrorMessage;
+  
+    const credentials = auth(req);
+  
+    if (credentials) {
+      const user = users.find(u => u.emailAddress === credentials.name);
+  
+      if (user) {
+        const authenticated = bcryptjs
+          .compareSync(credentials.pass, user.password);
+  
+        if (authenticated) {
+          console.log(`Authentication successful for username: ${user.username}`);
+  
+          req.currentUser = user;
+        } else {
+          authErrorMessage = `Authentication failure for username: ${user.username}`;
+        }
+      } else {
+        authErrorMessage = `User not found for username: ${credentials.name}`;
+      }
+    } else {
+      authErrorMessage = 'Auth header not found';
+    }
+  
+    if (message) {
+      console.warn(message);
+  
+      res.status(401).json({ message: 'Access Not Authorized' });
+    } else {
+      next();
+    }
+  };
+                // const authenticateUser = (req, res, next) => {
+                //     const credentials = auth(req); //sets credentials var to an obj containing user's key and secret(assuming req returned)
+                //     if (credentials) {
+                //         const user = users.find(u => u.username === credentials.name); //finds user based on 
+                //     }
+                //     next();
+                //   }
 
 // *USER ROUTES*
 
 // GET /api/users 200 - Returns the currently authenticated user
-router.get('/users', asyncHandler(async (req, res) => {
-  const currentUser = PLACEHOLDER; //DRAFT*** need auth criteria
-  const authUser = await User.findByPk(currentUser.id); 
-    res.status(200).json(authUser);
+router.get('/users', authenticateUser, asyncHandler(async (req, res) => {
+  const currentAuthUser = req.currentUser; //DRAFT*** need auth criteria
+  const currentUser = await User.findByPk(currentAuthUser.id); 
+    res.status(200).json(currentUser);
 }));
 
 //VALIDATION CHAINS
