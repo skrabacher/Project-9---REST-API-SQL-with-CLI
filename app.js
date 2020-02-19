@@ -4,6 +4,9 @@
 const express = require('express');
 const morgan = require('morgan');
 const { sequelize } = require('./models'); //index does not need to be included it is the default run file in the folder
+const routes = require('./routes')
+
+
 
 // TESTS CONNECTION TO THE DB w/ IIFE and Authenticate() method
 (async () => { //keyword async defines an asynchronous function
@@ -20,11 +23,14 @@ const enableGlobalErrorLogging = process.env.ENABLE_GLOBAL_ERROR_LOGGING === 'tr
 
 // create the Express app
 const app = express();
+// Setup request body JSON parsing.
+app.use(express.json());
 
 // setup morgan which gives us http request logging
 app.use(morgan('dev'));
 
 // TODO setup your api routes here
+app.use('/api', routes); // sets root route for route file 
 
 // setup a friendly greeting for the root route
 app.get('/', (req, res) => {
