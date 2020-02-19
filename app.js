@@ -4,7 +4,8 @@
 const express = require('express');
 const morgan = require('morgan');
 const { sequelize } = require('./models'); //index does not need to be included it is the default run file in the folder
-// TEST CONNECTION TO THE DB w/ IIFE and Authenticate() method
+
+// TESTS CONNECTION TO THE DB w/ IIFE and Authenticate() method
 (async () => { //keyword async defines an asynchronous function
   try { //use the await keyword to wait for a Promise (await must be used inside an async function)
       await sequelize.authenticate(); //Sequelize's authenticate() function returns a promise that resolves to a successful, authenticated connection to the database.
@@ -59,4 +60,4 @@ const server = app.listen(app.get('port'), () => {
   console.log(`Express server is listening on port ${server.address().port}`);
 });
 
-//  npx sequelize model:create --name Course --attributes firstName:string,lastName:string,emailAddress:string,password:string
+
