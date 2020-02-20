@@ -171,11 +171,18 @@ router.put('/courses/:id', authenticateUser, titleVC, descriptionVC, asyncHandle
     const errorMessages = errors.array().map(error => error.msg); // Use the Array `map()` method to get a list of error messages.
     res.status(400).json({ errors: errorMessages }); //responds with error messages
   } else {
-    const course = await Course.findByPk(req.params.id);
-    await course.update(req.body);
-    res.status(204).end();
+    const course = await Course.findByPk(req.params.id); //finds course with the same id number as the one passed into the url path (request parameter of id)
+    if (course) { //if course is found
+      await course.update(req.body); //update the course with the request body (passed in as a json object from postman for now)
+      res.status(204).end(); //return status of 204 to
+    } else {
+      res.status(404).json({message: "ERROR: 404 - No course found with that id number"}).end();
+    }
 }
 }));
+
+// await Course.update(req.body, { where: { myParam: myParamVal}})
+
 // DELETE /api/courses/:id 204 - Deletes a course and returns no content
 router.delete('/courses/:id', authenticateUser, asyncHandler(async (req, res) => {
   const course = await Course.findByPk(req.params.id);
