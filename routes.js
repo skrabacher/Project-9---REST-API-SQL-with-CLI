@@ -29,27 +29,28 @@ function asyncHandler(cb){
 //Modeled using: https://teamtreehouse.com/library/rest-api-authentication-with-express
 const authenticateUser = async (req, res, next) => {
     let authErrorMessage = null; //variable to hold error messages
+    const allUsers = await User.findAll(); //gets all user data and stores in the allUser variable
     const credentials = auth(req); //pulls the user credentials from the authorization header
     //credentials will contain two values:
         //name: the user's email address
         //pass: the user's password (in clear text).
     if (credentials) { //checks to see if user record exists using email entered
-      const user = await User.find(u => u.emailAddress === credentials.name); //finds user email in the db that matches the credentials email. stores that entire db row(user instance) in the user var
-      if (user) {  //checks to see if correct password was used with email
+      const validUser = allUsers.find(user => user.emailAddress === credentials.name); //finds user email in the db that matches the credentials email. stores that entire db row(user instance) in the user var
+      if (validUser) {  //checks to see if correct password was used with email
         // Use the bcryptjs npm package to compare the user's password
         // (from the Authorization header) to the user's password
         // that was retrieved from the data store.
-        const authenticated = bcryptjsS
-          .compareSync(credentials.pass, user.password); //hashes the entered password(credentials.pass) and compares to the hashed database password (user.password)
+        const authenticated = bcryptjs
+          .compareSync(credentials.pass, validUser.password); //hashes the entered password(credentials.pass) and compares to the hashed database password (user.password)
         if (authenticated) {
-          console.log(`Authentication successful for username: ${user.username}`);
+          console.log(`Authentication successful for username: ${ser.username}`);
   
           // Then store the retrieved user object on the request object
           // so any middleware functions that follow this middleware function
           // will have access to the user's information.
-          req.currentAuthUser = user; //attaches user data to the req object so that the data can be called in the next fucnitno
+          req.currentAuthUser = validUser; //attaches validUser data to the req object so that the data can be called in the next fucnitno
         } else {
-          authErrorMessage = `Authentication failure for username: ${user.username}`;
+          authErrorMessage = `Authentication failure for username: ${validUser.username}`;
         }
       } else {
         authErrorMessage = `User not found for username: ${credentials.name}`;
@@ -59,8 +60,8 @@ const authenticateUser = async (req, res, next) => {
     }
   
     // If user authentication failed...
-    if (message) {
-      console.warn(message);
+    if (authErrorMessage) {
+      console.warn(authErrorMessage);
   
       // Return a response with a 401 Unauthorized HTTP status code.
       res.status(401).json({ message: 'Access Denied' });
@@ -70,14 +71,6 @@ const authenticateUser = async (req, res, next) => {
       next();
     }
   };
-                // const authenticateUser = (req, res, next) => {
-                //     const credentials = auth(req); //sets credentials var to an obj containing user's key and secret(assuming req returned)
-                //     if (credentials) {
-                //         const user = users.find(u => u.username === credentials.name); //finds user based on 
-                //     }
-                //     next();
-                //   }
-
 
 //VALIDATION CHAINS
 // check() returns a "validation chain". Any number of validation methods can be called on a validation chain to validate a field. 
@@ -137,15 +130,15 @@ router.get('/courses', asyncHandler(async (req, res) => {
           include: [
             {
               model: User, // indicates that we want any related Person model data
-              as: 'instructor',
+              as: 'instructor', //linked to course model and user model files that also have instructor alias defined
             },
           ],
-        }); //DRAFT***
+        }); 
     res.status(200).json(courses);
 }));
 // GET /api/courses/:id 200 - Returns a the course (including the user that owns the course) for the provided course ID
 router.get('/courses/:id', asyncHandler(async (req, res) => {
-  const course = await Course.findByPk(req.params.id); 
+  const course = await Course.findByPk(req.params.id); //DRAFT***
   res.status(200).json(course);
 }));  
 // POST /api/courses 201 - Creates a course, sets the Location header to the URI for the course, and returns no content
