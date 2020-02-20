@@ -148,7 +148,7 @@ router.get('/courses/:id', asyncHandler(async (req, res) => {
           as: 'instructor', //linked to course model and user model files that also have instructor alias defined
         },
       ],
-  }); //DRAFT***
+  }); 
   res.status(200).json(course);
 }));  
 // POST /api/courses 201 - Creates a course, sets the Location header to the URI for the course, and returns no content
@@ -162,9 +162,9 @@ router.post('/courses', authenticateUser, titleVC, descriptionVC, asyncHandler(a
     // Return the validation errors to the client.
     res.status(400).json({ errors: errorMessages });
   } else {
-    await Course.create(req.body);//creates new instance of User model 
+    const specificCourse = await Course.create(req.body);//creates new instance of User model 
     // Set the status to 201 Created and end the response.
-    res.status(201).location(PLACEHOLDER).end(); //sets response status & location header
+    res.status(201).location('courses/' + specificCourse.id).end(); //sets response status & location header
   }
 }));
 // PUT /api/courses/:id 204 - Updates a course and returns no content
