@@ -202,10 +202,16 @@ router.put('/courses/:id', authenticateUser, titleVC, descriptionVC, asyncHandle
 
 // DELETE /api/courses/:id 204 - Deletes a course and returns no content
 router.delete('/courses/:id', authenticateUser, asyncHandler(async (req, res) => {
+  const currentAuthUser = req.currentAuthUser; //
   const course = await Course.findByPk(req.params.id);
-  if (course) {
-    await course.destroy();
-    res.status(204).end();
+  if(course) {
+    const courseAdmin = course.userId === currentAuthUser.Id;
+    if (courseAdmin) {
+      await course.destroy();
+      res.status(204).end();
+    } else {
+      res.status(403).json({message: "ERROR: 403 - You are not authorized to delete this course"}).end();
+    }
   } else {
     res.status(404).json({message: "ERROR: 404 - No course found with that id number"}).end();
   }
