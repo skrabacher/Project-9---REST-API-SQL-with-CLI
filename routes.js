@@ -43,14 +43,14 @@ const authenticateUser = async (req, res, next) => {
         const authenticated = bcryptjs
           .compareSync(credentials.pass, validUser.password); //hashes the entered password(credentials.pass) and compares to the hashed database password (user.password)
         if (authenticated) {
-          console.log(`Authentication successful for username: ${ser.username}`);
+          console.log(`Authentication successful for username: ${validUser.emailAddress}`);
   
           // Then store the retrieved user object on the request object
           // so any middleware functions that follow this middleware function
           // will have access to the user's information.
           req.currentAuthUser = validUser; //attaches validUser data to the req object so that the data can be called in the next fucnitno
         } else {
-          authErrorMessage = `Authentication failure for username: ${validUser.username}`;
+          authErrorMessage = `Authentication failure for username: ${validUser.emailAddress}`;
         }
       } else {
         authErrorMessage = `User not found for username: ${credentials.name}`;
@@ -99,9 +99,12 @@ const descriptionVC = check('description')
 
 // GET /api/users 200 - Returns the currently authenticated user
 router.get('/users', authenticateUser, asyncHandler(async (req, res) => {
-    const currentAuthUser = req.currentUser; //req.currentUser
-    const currentUser = await User.findByPk(currentAuthUser.id); 
-      res.status(200).json(currentUser);
+    console.log("req/in GET/api/users: ", req);
+    console.log("req.currentUser/in GET/api/users: ", req.currentAuthUser);
+    const currentAuthUser = req.currentAuthUser; //req.currentUser
+    console.log("currentAuthUser/in GET/api/users: ", currentAuthUser);
+    const user = await User.findByPk(currentAuthUser.id); 
+      res.status(200).json(user);
   }));
 
 // POST /api/users 201 - Creates a user, sets the Location header to "/", and returns no content
