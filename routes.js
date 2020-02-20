@@ -99,12 +99,9 @@ const descriptionVC = check('description')
 
 // GET /api/users 200 - Returns the currently authenticated user
 router.get('/users', authenticateUser, asyncHandler(async (req, res) => {
-    console.log("req/in GET/api/users: ", req);
-    console.log("req.currentUser/in GET/api/users: ", req.currentAuthUser);
     const currentAuthUser = req.currentAuthUser; //req.currentUser
-    console.log("currentAuthUser/in GET/api/users: ", currentAuthUser);
     const user = await User.findByPk(currentAuthUser.id); 
-      res.status(200).json(user);
+    res.status(200).json(user);
   }));
 
 // POST /api/users 201 - Creates a user, sets the Location header to "/", and returns no content
@@ -174,14 +171,20 @@ router.put('/courses/:id', authenticateUser, titleVC, descriptionVC, asyncHandle
     const errorMessages = errors.array().map(error => error.msg); // Use the Array `map()` method to get a list of error messages.
     res.status(400).json({ errors: errorMessages }); //responds with error messages
   } else {
+    const course = await Course.findByPk(req.params.id);
     await course.update(req.body);
     res.status(204).end();
 }
 }));
 // DELETE /api/courses/:id 204 - Deletes a course and returns no content
 router.delete('/courses/:id', authenticateUser, asyncHandler(async (req, res) => {
-  
-  res.status(204).end();
+  const course = await Course.findByPk(req.params.id);
+  if (course) {
+    await course.destroy();
+    res.status(204).end();
+  } else {
+    res.status(404).json({message: "ERROR: 404 - No course found with that id number"}).end();
+  }
 }));
   
 module.exports = router;
