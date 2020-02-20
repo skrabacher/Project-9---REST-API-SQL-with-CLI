@@ -28,21 +28,26 @@ function asyncHandler(cb){
 }
 //Modeled using: https://teamtreehouse.com/library/rest-api-authentication-with-express
 const authenticateUser = async (req, res, next) => {
-    let authErrorMessage;
-  
-    const credentials = auth(req);
-  
-    if (credentials) {
-      const user = users.find(u => u.emailAddress === credentials.name);
-  
-      if (user) {
-        const authenticated = bcryptjs
-          .compareSync(credentials.pass, user.password);
-  
+    let authErrorMessage = null; //variable to hold error messages
+    const credentials = auth(req); //pulls the user credentials from the authorization header
+    //credentials will contain two values:
+        //name: the user's email address
+        //pass: the user's password (in clear text).
+    if (credentials) { //checks to see if user record exists using email entered
+      const user = await User.find(u => u.emailAddress === credentials.name); //finds user email in the db that matches the credentials email. stores that entire db row(user instance) in the user var
+      if (user) {  //checks to see if correct password was used with email
+        // Use the bcryptjs npm package to compare the user's password
+        // (from the Authorization header) to the user's password
+        // that was retrieved from the data store.
+        const authenticated = bcryptjsS
+          .compareSync(credentials.pass, user.password); //hashes the entered password(credentials.pass) and compares to the hashed database password (user.password)
         if (authenticated) {
           console.log(`Authentication successful for username: ${user.username}`);
   
-          req.currentUser = user;
+          // Then store the retrieved user object on the request object
+          // so any middleware functions that follow this middleware function
+          // will have access to the user's information.
+          req.currentAuthUser = user; //attaches user data to the req object so that the data can be called in the next fucnitno
         } else {
           authErrorMessage = `Authentication failure for username: ${user.username}`;
         }
@@ -53,11 +58,15 @@ const authenticateUser = async (req, res, next) => {
       authErrorMessage = 'Auth header not found';
     }
   
+    // If user authentication failed...
     if (message) {
       console.warn(message);
   
-      res.status(401).json({ message: 'Access Not Authorized' });
+      // Return a response with a 401 Unauthorized HTTP status code.
+      res.status(401).json({ message: 'Access Denied' });
     } else {
+      // Or if user authentication succeeded...
+      // Call the next() method.
       next();
     }
   };
@@ -69,14 +78,6 @@ const authenticateUser = async (req, res, next) => {
                 //     next();
                 //   }
 
-// *USER ROUTES*
-
-// GET /api/users 200 - Returns the currently authenticated user
-router.get('/users', authenticateUser, asyncHandler(async (req, res) => {
-  const currentAuthUser = req.currentUser; //DRAFT*** need auth criteria
-  const currentUser = await User.findByPk(currentAuthUser.id); 
-    res.status(200).json(currentUser);
-}));
 
 //VALIDATION CHAINS
 // check() returns a "validation chain". Any number of validation methods can be called on a validation chain to validate a field. 
@@ -101,6 +102,15 @@ const descriptionVC = check('description')
   .withMessage('Please provide a value for "description"');
 
 
+// *USER ROUTES*
+
+// GET /api/users 200 - Returns the currently authenticated user
+router.get('/users', authenticateUser, asyncHandler(async (req, res) => {
+    const currentAuthUser = req.currentUser; //req.currentUser
+    const currentUser = await User.findByPk(currentAuthUser.id); 
+      res.status(200).json(currentUser);
+  }));
+
 // POST /api/users 201 - Creates a user, sets the Location header to "/", and returns no content
 router.post('/users', asyncHandler(async (req, res) => { // firstNameVC, lastNameVC, emailVC, passwordVC,
     // Attempt to get the validation result from the Request object.
@@ -123,16 +133,23 @@ router.post('/users', asyncHandler(async (req, res) => { // firstNameVC, lastNam
 // *COURSE ROUTES*
 // GET /api/courses 200 - Returns a list of courses (including the user that owns each course)
 router.get('/courses', asyncHandler(async (req, res) => {
-    const courses = await Course.findAll(); //DRAFT***
+    const courses = await Course.findAll({
+          include: [
+            {
+              model: User, // indicates that we want any related Person model data
+              as: 'instructor',
+            },
+          ],
+        }); //DRAFT***
     res.status(200).json(courses);
 }));
 // GET /api/courses/:id 200 - Returns a the course (including the user that owns the course) for the provided course ID
 router.get('/courses/:id', asyncHandler(async (req, res) => {
-  const course = await Course.findByPk(req.params.id); //DRAFT***
+  const course = await Course.findByPk(req.params.id); 
   res.status(200).json(course);
 }));  
 // POST /api/courses 201 - Creates a course, sets the Location header to the URI for the course, and returns no content
-router.post('/courses', titleVC, descriptionVC, asyncHandler(async (req, res) => {
+router.post('/courses', authenticateUser, titleVC, descriptionVC, asyncHandler(async (req, res) => {
   // Attempt to get the validation result from the Request object.
   const errors = validationResult(req); //validationResult extracts the validation errors from a request and makes them available in a Result object.
   // If there are validation errors...
@@ -148,7 +165,7 @@ router.post('/courses', titleVC, descriptionVC, asyncHandler(async (req, res) =>
   }
 }));
 // PUT /api/courses/:id 204 - Updates a course and returns no content
-router.put('/courses/:id', titleVC, descriptionVC, asyncHandler(async (req, res) => {
+router.put('/courses/:id', authenticateUser, titleVC, descriptionVC, asyncHandler(async (req, res) => {
   const errors = validationResult(req); //validationResult extracts the validation errors from a request and makes them available in a Result object.
   if (!errors.isEmpty()) { //if errors exist
     const errorMessages = errors.array().map(error => error.msg); // Use the Array `map()` method to get a list of error messages.
@@ -159,7 +176,7 @@ router.put('/courses/:id', titleVC, descriptionVC, asyncHandler(async (req, res)
 }
 }));
 // DELETE /api/courses/:id 204 - Deletes a course and returns no content
-router.delete('/courses/:id', asyncHandler(async (req, res) => {
+router.delete('/courses/:id', authenticateUser, asyncHandler(async (req, res) => {
   
   res.status(204).end();
 }));

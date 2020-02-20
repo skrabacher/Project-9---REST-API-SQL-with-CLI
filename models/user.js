@@ -68,7 +68,7 @@ module.exports = (sequelize) => {
     models.User.hasMany(models.Course, { 
       as: "instructor", //remove this it causes issues?... shoudl be renaming the column header in the db
       foreignKey: {
-        fieldName: 'instructorPersonId',
+        fieldName: 'userId',
         allowNull: false,
       },
     });

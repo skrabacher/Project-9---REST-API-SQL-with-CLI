@@ -11,20 +11,6 @@ module.exports = (sequelize) => {
         autoIncrement: true,
         allowNull: false,
     },
-// userId (id from the Users table)
-
-    // userId: {
-    //     type: Sequelize.INTEGER,
-    //     allowNull: false,
-    //     validate: {
-    //         notNull: {
-    //           msg: 'Please provide a value for "userId"',
-    //         },
-    //         notEmpty: {
-    //           msg: 'Please provide a value for "userId"',
-    //         },
-    //       },
-    // },
     title: {
         type: Sequelize.STRING,
         allowNull: false,
@@ -62,9 +48,9 @@ module.exports = (sequelize) => {
   Course.associate = (models) => {
     // Add a one-to-one association between the Course and User model
     models.Course.belongsTo(models.User, { 
-      as: "instructor", //remove this it causes issues?... shoudl be renaming the column header in the db
+      as: "instructor", //remove this if it causes issues?... should be renaming the column header in the db?
       foreignKey: {
-        fieldName: 'instructorPersonId',
+        fieldName: 'userId',
         allowNull: false,
       },
     });
