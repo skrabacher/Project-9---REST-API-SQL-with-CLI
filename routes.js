@@ -183,15 +183,19 @@ router.post('/courses', authenticateUser, titleVC, descriptionVC, asyncHandler(a
 // PUT /api/courses/:id 204 - Updates a course and returns no content
 router.put('/courses/:id', authenticateUser, titleVC, descriptionVC, asyncHandler(async (req, res) => {
   const errors = validationResult(req); //validationResult extracts the validation errors from a request and makes them available in a Result object.
-  if (!errors.isEmpty()) { //if errors exist
+  if (!errors.isEmpty()) { //if errors exist from the user input...
     const errorMessages = errors.array().map(error => error.msg); // Use the Array `map()` method to get a list of error messages.
     res.status(400).json({ errors: errorMessages }); //responds with error messages
-  } else {
+  } else { //IF NO ERRORS EXIST:
     const course = await Course.findByPk(req.params.id); //finds course with the same id number as the one passed into the url path (request parameter of id)
     if (course) { //if course is found
-      await course.update(req.body); //update the course with the request body (passed in as a json object from postman for now)
-      // await Course.update(req.body, { where: { myParam: myParamVal}})
-      res.status(204).end(); //return status of 204 to
+      const courseAdmin = course.userId === currentAuthUser.Id;
+      if (courseAdmin) {
+        await course.update(req.body); //update the course with the request body (passed in as a json object from postman for now)
+        res.status(204).end(); //return status of 204 to
+      } else {
+        res.status(403).json({message: "ERROR: 403 - You are not authorized to delete this course"}).end();
+      }
     } else {
       res.status(404).json({message: "ERROR: 404 - No course found with that id number"}).end();
     }
