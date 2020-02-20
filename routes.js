@@ -100,7 +100,13 @@ const descriptionVC = check('description')
 // GET /api/users 200 - Returns the currently authenticated user
 router.get('/users', authenticateUser, asyncHandler(async (req, res) => {
     const currentAuthUser = req.currentAuthUser; //req.currentUser
-    const user = await User.findByPk(currentAuthUser.id); 
+    const user = await User.findByPk(currentAuthUser.id, {
+      exclude: [
+          'password',
+          'createdAt',
+          'updatedAt'
+      ],
+    }); 
     res.status(200).json(user);
   }));
 
@@ -123,16 +129,26 @@ router.post('/users', asyncHandler(async (req, res) => { // firstNameVC, lastNam
     }
 }));
   
+// Model.findAll({
+//   attributes: { exclude: ['baz'] }
+// });
+
 // *COURSE ROUTES*
 // GET /api/courses 200 - Returns a list of courses (including the user that owns each course)
 router.get('/courses', asyncHandler(async (req, res) => {
     const courses = await Course.findAll({
-          include: [
-            {
-              model: User, // indicates that we want any related Person model data
-              as: 'instructor', //linked to course model and user model files that also have instructor alias defined
-            },
+        include: [
+          {
+            model: User, // indicates that we want any related Person model data
+            as: 'instructor', //linked to course model and user model files that also have instructor alias defined
+          },
+        ],
+        attributes: {
+          exclude: [
+              'createdAt',
+              'updatedAt',
           ],
+        }
         }); 
     res.status(200).json(courses);
 }));
@@ -174,6 +190,7 @@ router.put('/courses/:id', authenticateUser, titleVC, descriptionVC, asyncHandle
     const course = await Course.findByPk(req.params.id); //finds course with the same id number as the one passed into the url path (request parameter of id)
     if (course) { //if course is found
       await course.update(req.body); //update the course with the request body (passed in as a json object from postman for now)
+      // await Course.update(req.body, { where: { myParam: myParamVal}})
       res.status(204).end(); //return status of 204 to
     } else {
       res.status(404).json({message: "ERROR: 404 - No course found with that id number"}).end();
@@ -181,7 +198,7 @@ router.put('/courses/:id', authenticateUser, titleVC, descriptionVC, asyncHandle
 }
 }));
 
-// await Course.update(req.body, { where: { myParam: myParamVal}})
+
 
 // DELETE /api/courses/:id 204 - Deletes a course and returns no content
 router.delete('/courses/:id', authenticateUser, asyncHandler(async (req, res) => {
