@@ -82,8 +82,10 @@ const lastNameVC = check('lastName')
   .withMessage('Please provide a value for "lastName"');
 const emailVC = check('emailAddress')
   .exists({ checkNull: true, checkFalsy: true })
+  .withMessage('Please provide a value for "emailAddress"')
   .isEmail()
-  .withMessage('Please provide a value for "emailAddress"');
+  .withMessage('Please provide a valid email address')
+
 const passwordVC = check('password')
   .exists({ checkNull: true, checkFalsy: true })
   .withMessage('Please provide a value for "password"');
@@ -113,7 +115,7 @@ router.get('/users', authenticateUser, asyncHandler(async (req, res) => {
   }));
 
 // POST /api/users 201 - Creates a user, sets the Location header to "/", and returns no content
-router.post('/users', asyncHandler(async (req, res) => { // firstNameVC, lastNameVC, emailVC, passwordVC,
+router.post('/users', firstNameVC, lastNameVC, emailVC, passwordVC, asyncHandler(async (req, res) => { // firstNameVC, lastNameVC, emailVC, passwordVC,
     // Attempt to get the validation result from the Request object.
     const errors = validationResult(req); //validationResult extracts the validation errors from a request and makes them available in a Result object.
     // If there are validation errors...
