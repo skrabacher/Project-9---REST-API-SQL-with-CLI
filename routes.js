@@ -74,7 +74,7 @@ const authenticateUser = async (req, res, next) => {
 
 //VALIDATION CHAINS
 // check() returns a "validation chain". Any number of validation methods can be called on a validation chain to validate a field. 
-const firstNameVC = check('firstName')
+const firstNameVC = check('firstName') //parameter is the model field that will be checked
   .exists({ checkNull: true, checkFalsy: true })
   .withMessage('Please provide a value for "firstName"');
 const lastNameVC = check('lastName')
@@ -163,6 +163,12 @@ router.get('/courses/:id', asyncHandler(async (req, res) => {
           as: 'instructor', //linked to course model and user model files that also have instructor alias defined
         },
       ],
+      attributes: {
+        exclude: [
+            'createdAt',
+            'updatedAt',
+        ],
+      }
   }); 
   res.status(200).json(course);
 }));  
