@@ -101,11 +101,13 @@ const descriptionVC = check('description')
 router.get('/users', authenticateUser, asyncHandler(async (req, res) => {
     const currentAuthUser = req.currentAuthUser; //req.currentUser
     const user = await User.findByPk(currentAuthUser.id, {
-      exclude: [
+      attributes: {
+        exclude: [
           'password',
           'createdAt',
           'updatedAt'
-      ],
+        ],
+      }
     }); 
     res.status(200).json(user);
   }));
