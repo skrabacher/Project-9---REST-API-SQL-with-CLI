@@ -99,7 +99,7 @@ const descriptionVC = check('description')
 
 // GET /api/users 200 - Returns the currently authenticated user
 router.get('/users', authenticateUser, asyncHandler(async (req, res) => {
-    const currentAuthUser = req.currentAuthUser; //req.currentUser
+    const currentAuthUser = req.currentAuthUser; //req.currentUser from authenticateUser()
     const user = await User.findByPk(currentAuthUser.id, {
       attributes: {
         exclude: [
@@ -190,6 +190,7 @@ router.post('/courses', authenticateUser, titleVC, descriptionVC, asyncHandler(a
 }));
 // PUT /api/courses/:id 204 - Updates a course and returns no content
 router.put('/courses/:id', authenticateUser, titleVC, descriptionVC, asyncHandler(async (req, res) => {
+  const currentAuthUser = req.currentAuthUser; //req.currentUser from authenticateUser()
   const errors = validationResult(req); //validationResult extracts the validation errors from a request and makes them available in a Result object.
   if (!errors.isEmpty()) { //if errors exist from the user input...
     const errorMessages = errors.array().map(error => error.msg); // Use the Array `map()` method to get a list of error messages.
@@ -214,7 +215,7 @@ router.put('/courses/:id', authenticateUser, titleVC, descriptionVC, asyncHandle
 
 // DELETE /api/courses/:id 204 - Deletes a course and returns no content
 router.delete('/courses/:id', authenticateUser, asyncHandler(async (req, res) => {
-  const currentAuthUser = req.currentAuthUser; //
+  const currentAuthUser = req.currentAuthUser; //req.currentUser from authenticateUser()
   const course = await Course.findByPk(req.params.id);
   if(course) {
     const courseAdmin = course.userId === currentAuthUser.Id;
