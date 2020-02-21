@@ -85,16 +85,16 @@ const emailVC = check('emailAddress')
   .withMessage('Please provide a value for "emailAddress"')
   .isEmail()
   .withMessage('Please provide a valid email address')
-  .custom(async (value) => { //CHECKING IF EMAIL ALREADY IN USER custom validation for email modeled after: https://express-validator.github.io/docs/custom-validators-sanitizers.html
-    const user = await User.findOne({ 
-      where: { 
-        emailAddress: value
-      } 
-    });
-    if (user) {
-        return Promise.reject('E-mail already in use');
-      }
-    });
+  //CHECKING IF EMAIL ALREADY IN USER custom validation for email modeled after: https://express-validator.github.io/docs/custom-validators-sanitizers.html
+  .custom(async (value) => { const user = await User.findOne({ 
+    where: { 
+      emailAddress: value
+    } 
+  });
+  if (user) {
+      return Promise.reject('E-mail already in use');
+    }
+  });
 const passwordVC = check('password')
   .exists({ checkNull: true, checkFalsy: true })
   .withMessage('Please provide a value for "password"');
@@ -142,9 +142,6 @@ router.post('/users', firstNameVC, lastNameVC, emailVC, passwordVC, asyncHandler
     }
 }));
   
-// Model.findAll({
-//   attributes: { exclude: ['baz'] }
-// });
 
 // *COURSE ROUTES*
 // GET /api/courses 200 - Returns a list of courses (including the user that owns each course)
@@ -209,12 +206,12 @@ router.put('/courses/:id', authenticateUser, titleVC, descriptionVC, asyncHandle
   } else { //IF NO ERRORS EXIST:
     const course = await Course.findByPk(req.params.id); //finds course with the same id number as the one passed into the url path (request parameter of id)
     if (course) { //if course is found
-      const courseAdmin = course.userId === currentAuthUser.Id;
+      const courseAdmin = course.userId === currentAuthUser.id;
       if (courseAdmin) {
         await course.update(req.body); //update the course with the request body (passed in as a json object from postman for now)
         res.status(204).end(); //return status of 204 to
       } else {
-        res.status(403).json({message: "ERROR: 403 - You are not authorized to delete this course"}).end();
+        res.status(403).json({message: "ERROR: 403 - You are not authorized to update this course"}).end();
       }
     } else {
       res.status(404).json({message: "ERROR: 404 - No course found with that id number"}).end();
@@ -251,24 +248,4 @@ router.delete('/courses/:id', authenticateUser, asyncHandler(async (req, res) =>
   
 module.exports = router;
    
-   //***SJK NOTE*** DRAFT from here: C:\Users\Sarah\Documents\Treehouse Tech Degree\Unit 9\PRACTICE- data-relationships-with-sql-and-sequelize\starter-files\app.js
-        // Retrieve movies:
-                  // const movies = await Movie.findAll({
-                  //   include: [
-                  //     {
-                  //       model: Person, // indicates that we want any related Person model data
-                  //       as: 'director',
-                  //     },
-                  //   ],
-                  // });
-                  // console.log(movies.map(movie => movie.get({ plain: true })));
-                  // // Retrieve people
-                  // const people = await Person.findAll({
-                  //   include: [
-                  //     {
-                  //       model: Movie,
-                  //       as: 'director',
-                  //     },
-                  //   ],
-                  // });
-                  // console.log(people.map(person => person.get({ plain: true })));
+
