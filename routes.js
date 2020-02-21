@@ -85,7 +85,16 @@ const emailVC = check('emailAddress')
   .withMessage('Please provide a value for "emailAddress"')
   .isEmail()
   .withMessage('Please provide a valid email address')
-
+  .custom(async (value) => { //CHECKING IF EMAIL ALREADY IN USER custom validation for email modeled after: https://express-validator.github.io/docs/custom-validators-sanitizers.html
+    const user = await User.findOne({ 
+      where: { 
+        emailAddress: value
+      } 
+    });
+    if (user) {
+        return Promise.reject('E-mail already in use');
+      }
+    });
 const passwordVC = check('password')
   .exists({ checkNull: true, checkFalsy: true })
   .withMessage('Please provide a value for "password"');
