@@ -151,6 +151,7 @@ router.get('/courses', asyncHandler(async (req, res) => {
           {
             model: User, // indicates that we want any related Person model data
             as: 'instructor', //linked to course model and user model files that also have instructor alias defined
+            attributes: [ 'id', 'firstName', 'lastName' ] // only these attributes returned
           },
         ],
         attributes: {
@@ -162,6 +163,7 @@ router.get('/courses', asyncHandler(async (req, res) => {
         }); 
     res.status(200).json(courses);
 }));
+
 // GET /api/courses/:id 200 - Returns a the course (including the user that owns the course) for the provided course ID
 router.get('/courses/:id', asyncHandler(async (req, res) => {
   const course = await Course.findByPk(req.params.id, {
@@ -169,6 +171,7 @@ router.get('/courses/:id', asyncHandler(async (req, res) => {
         {
           model: User, // indicates that we want any related Person model data
           as: 'instructor', //linked to course model and user model files that also have instructor alias defined
+          attributes: [ 'id', 'firstName', 'lastName' ] // only these attributes returned
         },
       ],
       attributes: {
@@ -180,6 +183,7 @@ router.get('/courses/:id', asyncHandler(async (req, res) => {
   }); 
   res.status(200).json(course);
 }));  
+
 // POST /api/courses 201 - Creates a course, sets the Location header to the URI for the course, and returns no content
 router.post('/courses', authenticateUser, titleVC, descriptionVC, asyncHandler(async (req, res) => {
   // Attempt to get the validation result from the Request object.
